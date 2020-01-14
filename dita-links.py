@@ -69,30 +69,40 @@ def configure ():
 
 
 def harvest (path_name):
+    def outgoing_links_of (element, path_name, accumulator):
+        dita_classes = utilities.dita_classes_of (element)
+
+        if "topic/xref" in dita_classes and "href" in element.attrib:
+            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+
+        elif "topic/link" in dita_classes and "href" in element.attrib:
+            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+
+        elif "topic/image" in dita_classes and "href" in element.attrib:
+            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+
+        elif "map/topicref" in dita_classes and "href" in element.attrib:
+            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+
+        elif "map/navref" in dita_classes and "href" in element.attrib:
+            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+
+
     def harvest_outgoing (path_name):
-        def walk (element):
-            dita_classes = utilities.dita_classes_of (element)
-
-            if "topic/xref" in dita_classes and "href" in element.attrib:
-                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
-
-            elif "topic/link" in dita_classes and "href" in element.attrib:
-                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
-
-            elif "topic/image" in dita_classes and "href" in element.attrib:
-                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
-
-            for child in element:
-                walk (child)
-
-
         parser = etree.XMLParser (attribute_defaults = True, dtd_validation = True)
         tree   = etree.parse (path_name, parser)
 
         accumulator = [ ]
-        walk (tree.getroot ())
+        visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
 
         return list (set (accumulator)) # Make the links unique.
+
+
+    def visit (element, visitor):
+        visitor (element)
+
+        for child in element:
+            visit (child, visitor)
 
 
     classification = classify (path_name)
@@ -128,8 +138,8 @@ if __name__ == "__main__":
 
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
-            if outgoing in indices:
-                indices[outgoing]["links"]["incoming"].append (path_name)
+            if not outgoing.is_external and outgoing.path in indices:
+                indices[outgoing.path]["links"]["incoming"].append (path_name)
 
     pp = pprint.PrettyPrinter ()
 
