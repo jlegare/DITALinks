@@ -8,6 +8,8 @@ import pprint
 
 from lxml import etree
 
+import utilities
+
 
 def classify (path_name):
     ( mime_type, _ ) = mimetypes.guess_type (path_name)
@@ -17,10 +19,10 @@ def classify (path_name):
         tree   = etree.parse (path_name, parser)
         root   = tree.getroot ()
 
-        if has_dita_class (root, "topic/topic"):
+        if utilities.has_dita_class (root, "topic/topic"):
             return ( "TOPIC", path_name )
 
-        elif has_dita_class (root, "map/map"):
+        elif utilities.has_dita_class (root, "map/map"):
             return ( "MAP  ", path_name )
 
         else:
@@ -66,31 +68,19 @@ def configure ():
     return arguments.path_name
 
 
-def dita_classes_of (element):
-    if "class" in element.attrib:
-        return list (filter (lambda s : s != "", element.attrib["class"].split (" ")))
-
-    else:
-        return [ ]
-
-
-def has_dita_class (element, dita_class):
-    return dita_class in dita_classes_of (element)
-
-
 def harvest (path_name):
     def harvest_outgoing (path_name):
         def walk (element):
-            dita_classes = dita_classes_of (element)
+            dita_classes = utilities.dita_classes_of (element)
 
             if "topic/xref" in dita_classes and "href" in element.attrib:
-                accumulator.append (element.attrib["href"])
+                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
 
             elif "topic/link" in dita_classes and "href" in element.attrib:
-                accumulator.append (element.attrib["href"])
+                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
 
             elif "topic/image" in dita_classes and "href" in element.attrib:
-                accumulator.append (element.attrib["href"])
+                accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
 
             for child in element:
                 walk (child)
@@ -102,7 +92,7 @@ def harvest (path_name):
         accumulator = [ ]
         walk (tree.getroot ())
 
-        return accumulator
+        return list (set (accumulator)) # Make the links unique.
 
 
     classification = classify (path_name)
@@ -129,7 +119,18 @@ def visit (path_name, visitor):
 
 
 if __name__ == "__main__":
+    indices = { }
+
     for path_name in configure ():
-        print ({ path_name: { "classification": d["classification"],
-                              "links":          d["links"] }
-                 for ( path_name, d ) in visit (path_name, harvest) })
+        indices.update ({ path_name: { "classification": d["classification"],
+                                       "links":          d["links"] }
+                          for ( path_name, d ) in visit (path_name, harvest) })
+
+    for ( path_name, index ) in indices.items ():
+        for outgoing in index["links"]["outgoing"]:
+            if outgoing in indices:
+                indices[outgoing]["links"]["incoming"].append (path_name)
+
+    pp = pprint.PrettyPrinter ()
+
+    pp.pprint (indices)
