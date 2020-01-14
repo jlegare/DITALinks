@@ -20,16 +20,16 @@ def classify (path_name):
         root   = tree.getroot ()
 
         if utilities.has_dita_class (root, "topic/topic"):
-            return ( "TOPIC", path_name )
+            return ( "TOPIC", path_name, tree )
 
         elif utilities.has_dita_class (root, "map/map"):
-            return ( "MAP  ", path_name )
+            return ( "MAP  ", path_name, tree )
 
         else:
-            return ( "OTHER", path_name )
+            return ( "OTHER", path_name, None )
 
     else:
-        return ( "OTHER", path_name )
+        return ( "OTHER", path_name, None )
 
 
 def configure ():
@@ -88,21 +88,11 @@ def harvest (path_name):
             accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
 
 
-    def harvest_outgoing (path_name):
-        parser = etree.XMLParser (attribute_defaults = True, dtd_validation = True)
-        tree   = etree.parse (path_name, parser)
-
+    def harvest_outgoing (tree, path_name):
         accumulator = [ ]
-        visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
+        utilities.visit_xml (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
 
         return list (set (accumulator)) # Make the links unique.
-
-
-    def visit (element, visitor):
-        visitor (element)
-
-        for child in element:
-            visit (child, visitor)
 
 
     classification = classify (path_name)
@@ -115,17 +105,7 @@ def harvest (path_name):
     else:
         return ( path_name, { "classification": classification[0],
                               "links": { "incoming": [ ],
-                                         "outgoing": harvest_outgoing (path_name) } } )
-
-
-def visit (path_name, visitor):
-    if os.path.isfile (path_name):
-        yield (visitor (path_name))
-
-    else:
-        for ( root, _, file_names ) in os.walk (path_name):
-            for file_name in file_names:
-                yield (visitor (os.path.join (root, file_name)))
+                                         "outgoing": harvest_outgoing (classification[2], classification[1]) } } )
 
 
 if __name__ == "__main__":
@@ -134,7 +114,7 @@ if __name__ == "__main__":
     for path_name in configure ():
         indices.update ({ path_name: { "classification": d["classification"],
                                        "links":          d["links"] }
-                          for ( path_name, d ) in visit (path_name, harvest) })
+                          for ( path_name, d ) in utilities.visit_path (path_name, harvest) })
 
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:

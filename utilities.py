@@ -31,3 +31,21 @@ def resolve (href, element, path_name):
     else:
         return Resolved (False, os.path.normpath (os.path.join (os.path.split (path_name)[0], parsed.path)), parsed.fragment)
 
+
+def visit_path (path_name, visitor):
+    if os.path.isfile (path_name):
+        yield (visitor (path_name))
+
+    else:
+        for ( root, _, file_names ) in os.walk (path_name):
+            for file_name in file_names:
+                yield (visitor (os.path.join (root, file_name)))
+
+
+def visit_xml (element, visitor):
+    visitor (element)
+
+    for child in element:
+        visit_xml (child, visitor)
+
+
