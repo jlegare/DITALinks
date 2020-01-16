@@ -89,10 +89,15 @@ def harvest (path_name):
 
 
     def harvest_outgoing (tree, path_name):
+        def uniquify (accumulator):
+            return list ({ ":".join ([ str (item[key]) for key in sorted (item.keys ()) ]) : item
+                           for item in accumulator }.values ())
+
+
         accumulator = [ ]
         utilities.visit_xml (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
 
-        return list (set (accumulator)) # Make the links unique.
+        return uniquify (accumulator) # Make the links unique.
 
 
     classification = classify (path_name)
@@ -118,8 +123,8 @@ if __name__ == "__main__":
 
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
-            if not outgoing.is_external and outgoing.path in indices:
-                indices[outgoing.path]["links"]["incoming"].append (path_name)
+            if not outgoing["is_external"] and outgoing["path"] in indices:
+                indices[outgoing["path"]]["links"]["incoming"].append (path_name)
 
     pp = pprint.PrettyPrinter ()
 
