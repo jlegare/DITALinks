@@ -119,7 +119,7 @@ if __name__ == "__main__":
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
             if not outgoing["is_external"] and outgoing["path"] in indices:
-                indices[outgoing["path"]]["links"]["incoming"].append (path_name)
+                indices[outgoing["path"]]["links"]["incoming"].append ({ "classes": outgoing["classes"], "path": path_name })
 
     pp = pprint.PrettyPrinter ()
 
