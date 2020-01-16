@@ -36,6 +36,11 @@ def resolve (dita_classes, href, element, path_name):
         return resolved (False, os.path.normpath (os.path.join (os.path.split (path_name)[0], parsed.path)), parsed.fragment)
 
 
+def uniquify (dictionaries):
+    return list ({ ":".join ([ str (dictionary[key]) for key in sorted (dictionary.keys ()) ]) : dictionary
+                   for dictionary in dictionaries }.values ())
+
+
 def visit_path (path_name, visitor):
     if os.path.isfile (path_name):
         yield (visitor (path_name))

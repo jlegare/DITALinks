@@ -89,15 +89,10 @@ def harvest (path_name):
 
 
     def harvest_outgoing (tree, path_name):
-        def uniquify (accumulator):
-            return list ({ ":".join ([ str (item[key]) for key in sorted (item.keys ()) ]) : item
-                           for item in accumulator }.values ())
-
-
         accumulator = [ ]
         utilities.visit_xml (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
 
-        return uniquify (accumulator) # Make the links unique.
+        return utilities.uniquify (accumulator) # Make the links unique.
 
 
     classification = classify (path_name)
