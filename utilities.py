@@ -14,9 +14,10 @@ def has_dita_class (element, dita_class):
     return dita_class in dita_classes_of (element)
 
 
-def resolve (href, element, path_name):
+def resolve (dita_classes, href, element, path_name):
     def resolved (is_external, path, fragment):
-        return { "is_external": is_external,
+        return { "classes":     dita_classes,
+                 "is_external": is_external,
                  "path":        path,
                  "fragment":    fragment }
 

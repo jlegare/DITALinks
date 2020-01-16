@@ -73,19 +73,19 @@ def harvest (path_name):
         dita_classes = utilities.dita_classes_of (element)
 
         if "topic/xref" in dita_classes and "href" in element.attrib:
-            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+            accumulator.append (utilities.resolve (dita_classes, element.attrib["href"], element, path_name))
 
         elif "topic/link" in dita_classes and "href" in element.attrib:
-            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+            accumulator.append (utilities.resolve (dita_classes, element.attrib["href"], element, path_name))
 
         elif "topic/image" in dita_classes and "href" in element.attrib:
-            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+            accumulator.append (utilities.resolve (dita_classes, element.attrib["href"], element, path_name))
 
         elif "map/topicref" in dita_classes and "href" in element.attrib:
-            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+            accumulator.append (utilities.resolve (dita_classes, element.attrib["href"], element, path_name))
 
         elif "map/navref" in dita_classes and "href" in element.attrib:
-            accumulator.append (utilities.resolve (element.attrib["href"], element, path_name))
+            accumulator.append (utilities.resolve (dita_classes, element.attrib["href"], element, path_name))
 
 
     def harvest_outgoing (tree, path_name):
