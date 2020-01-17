@@ -17,19 +17,11 @@ def has_class (element, dita_class):
 def outgoing_links_of (element, path_name):
     dita_class = class_of (element)
 
-    if "topic/xref" in dita_class and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path_name)
+    # These can all be handled the same way, so they've been refactored.
+    #
+    linker_classes = [ "topic/xref", "topic/link", "topic/image", "map/topicref", "map/navref" ]
 
-    elif "topic/link" in dita_class and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path_name)
-
-    elif "topic/image" in dita_class and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path_name)
-
-    elif "map/topicref" in dita_class and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path_name)
-
-    elif "map/navref" in dita_class and "href" in element.attrib:
+    if any (linker_class in dita_class for linker_class in linker_classes) and "href" in element.attrib:
         return resolve (dita_class, element.attrib["href"], element, path_name)
 
 
