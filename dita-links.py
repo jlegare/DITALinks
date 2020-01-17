@@ -71,30 +71,29 @@ def configure ():
 
 
 def harvest (path_name):
-    def outgoing_links_of (element, path_name, accumulator):
+    def harvest_outgoing (tree, path_name):
+        accumulator = [ link for link in dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name)) ]
+
+        return utilities.uniquify (accumulator) # Make the links unique.
+
+
+    def outgoing_links_of (element, path_name):
         dita_class = dita.class_of (element)
 
         if "topic/xref" in dita_class and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
+            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
 
         elif "topic/link" in dita_class and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
+            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
 
         elif "topic/image" in dita_class and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
+            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
 
         elif "map/topicref" in dita_class and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
+            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
 
         elif "map/navref" in dita_class and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
-
-
-    def harvest_outgoing (tree, path_name):
-        accumulator = [ ]
-        dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
-
-        return utilities.uniquify (accumulator) # Make the links unique.
+            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
 
 
     classification = classify (path_name)

@@ -37,9 +37,12 @@ def resolve (dita_class, href, element, path_name):
 
 
 def visit (element, visitor):
-    visitor (element)
+    visited = visitor (element)
+
+    if visited is not None:
+        yield visited
 
     for child in element:
-        visit (child, visitor)
+        yield from visit (child, visitor)
 
 
