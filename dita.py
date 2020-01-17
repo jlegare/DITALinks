@@ -14,6 +14,25 @@ def has_class (element, dita_class):
     return dita_class in class_of (element)
 
 
+def outgoing_links_of (element, path_name):
+    dita_class = class_of (element)
+
+    if "topic/xref" in dita_class and "href" in element.attrib:
+        return resolve (dita_class, element.attrib["href"], element, path_name)
+
+    elif "topic/link" in dita_class and "href" in element.attrib:
+        return resolve (dita_class, element.attrib["href"], element, path_name)
+
+    elif "topic/image" in dita_class and "href" in element.attrib:
+        return resolve (dita_class, element.attrib["href"], element, path_name)
+
+    elif "map/topicref" in dita_class and "href" in element.attrib:
+        return resolve (dita_class, element.attrib["href"], element, path_name)
+
+    elif "map/navref" in dita_class and "href" in element.attrib:
+        return resolve (dita_class, element.attrib["href"], element, path_name)
+
+
 def resolve (dita_class, href, element, path_name):
     def resolved (is_external, path, fragment):
         return { "class":       dita_class,

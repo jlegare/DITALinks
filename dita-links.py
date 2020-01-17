@@ -74,26 +74,7 @@ def harvest (path_name):
     def harvest_outgoing (tree, path_name):
         # Call utilities.uniquify () on the result to make the links unique.
         #
-        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name)))
-
-
-    def outgoing_links_of (element, path_name):
-        dita_class = dita.class_of (element)
-
-        if "topic/xref" in dita_class and "href" in element.attrib:
-            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
-
-        elif "topic/link" in dita_class and "href" in element.attrib:
-            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
-
-        elif "topic/image" in dita_class and "href" in element.attrib:
-            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
-
-        elif "map/topicref" in dita_class and "href" in element.attrib:
-            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
-
-        elif "map/navref" in dita_class and "href" in element.attrib:
-            return dita.resolve (dita_class, element.attrib["href"], element, path_name)
+        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path_name)))
 
 
     classification = classify (path_name)
