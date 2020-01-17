@@ -21,10 +21,10 @@ def classify (path_name):
         tree   = etree.parse (path_name, parser)
         root   = tree.getroot ()
 
-        if dita.has_dita_class (root, "topic/topic"):
+        if dita.has_class (root, "topic/topic"):
             return ( "TOPIC", path_name, tree )
 
-        elif dita.has_dita_class (root, "map/map"):
+        elif dita.has_class (root, "map/map"):
             return ( "MAP  ", path_name, tree )
 
         else:
@@ -72,27 +72,27 @@ def configure ():
 
 def harvest (path_name):
     def outgoing_links_of (element, path_name, accumulator):
-        dita_classes = dita.dita_classes_of (element)
+        dita_class = dita.class_of (element)
 
-        if "topic/xref" in dita_classes and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_classes, element.attrib["href"], element, path_name))
+        if "topic/xref" in dita_class and "href" in element.attrib:
+            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
 
-        elif "topic/link" in dita_classes and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_classes, element.attrib["href"], element, path_name))
+        elif "topic/link" in dita_class and "href" in element.attrib:
+            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
 
-        elif "topic/image" in dita_classes and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_classes, element.attrib["href"], element, path_name))
+        elif "topic/image" in dita_class and "href" in element.attrib:
+            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
 
-        elif "map/topicref" in dita_classes and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_classes, element.attrib["href"], element, path_name))
+        elif "map/topicref" in dita_class and "href" in element.attrib:
+            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
 
-        elif "map/navref" in dita_classes and "href" in element.attrib:
-            accumulator.append (dita.resolve (dita_classes, element.attrib["href"], element, path_name))
+        elif "map/navref" in dita_class and "href" in element.attrib:
+            accumulator.append (dita.resolve (dita_class, element.attrib["href"], element, path_name))
 
 
     def harvest_outgoing (tree, path_name):
         accumulator = [ ]
-        dita.visit_xml (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
+        dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name, accumulator))
 
         return utilities.uniquify (accumulator) # Make the links unique.
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
             if not outgoing["is_external"] and outgoing["path"] in indices:
-                indices[outgoing["path"]]["links"]["incoming"].append ({ "classes": outgoing["classes"], "path": path_name })
+                indices[outgoing["path"]]["links"]["incoming"].append ({ "class": outgoing["class"], "path": path_name })
 
     pp = pprint.PrettyPrinter ()
 

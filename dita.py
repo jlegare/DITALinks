@@ -2,7 +2,7 @@ import os.path
 import urllib.parse
 
 
-def dita_classes_of (element):
+def class_of (element):
     if "class" in element.attrib:
         return list (filter (lambda s : s != "", element.attrib["class"].split (" ")))
 
@@ -10,13 +10,13 @@ def dita_classes_of (element):
         return [ ]
 
 
-def has_dita_class (element, dita_class):
-    return dita_class in dita_classes_of (element)
+def has_class (element, dita_class):
+    return dita_class in class_of (element)
 
 
-def resolve (dita_classes, href, element, path_name):
+def resolve (dita_class, href, element, path_name):
     def resolved (is_external, path, fragment):
-        return { "classes":     dita_classes,
+        return { "class":       dita_class,
                  "is_external": is_external,
                  "path":        path,
                  "fragment":    fragment }
@@ -36,10 +36,10 @@ def resolve (dita_classes, href, element, path_name):
         return resolved (False, os.path.normpath (os.path.join (os.path.split (path_name)[0], parsed.path)), parsed.fragment)
 
 
-def visit_xml (element, visitor):
+def visit (element, visitor):
     visitor (element)
 
     for child in element:
-        visit_xml (child, visitor)
+        visit (child, visitor)
 
 
