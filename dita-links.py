@@ -116,7 +116,7 @@ if __name__ == "__main__":
     for path_name in configure ():
         indices.update ({ path_name: { "classification": d["classification"],
                                        "links":          d["links"] }
-                          for ( path_name, d ) in files.visit_path (path_name, harvest) })
+                          for ( path_name, d ) in files.visit (path_name, harvest) })
 
     for ( path_name, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:

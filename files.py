@@ -2,7 +2,7 @@ import os
 import os.path
 
 
-def visit_path (path_name, visitor):
+def visit (path_name, visitor):
     if os.path.isfile (path_name):
         yield (visitor (path_name))
 
