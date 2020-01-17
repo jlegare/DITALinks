@@ -35,7 +35,7 @@ def classify (path_name):
 def configure ():
     mimetypes.init ()
 
-    parser = argparse.ArgumentParser (description = "Classify DITA files into maps, topics, and others.")
+    parser = argparse.ArgumentParser (description = "Collect incoming/outgoing links from DITA files.")
 
     parser.add_argument ("-c", "--catalog",    help = "path to OASIS catalog")
     parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings")
