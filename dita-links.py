@@ -72,9 +72,9 @@ def configure ():
 
 def harvest (path_name):
     def harvest_outgoing (tree, path_name):
-        accumulator = [ link for link in dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name)) ]
-
-        return utilities.uniquify (accumulator) # Make the links unique.
+        # Call utilities.uniquify () on the result to make the links unique.
+        #
+        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : outgoing_links_of (element, path_name)))
 
 
     def outgoing_links_of (element, path_name):
