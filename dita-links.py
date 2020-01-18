@@ -116,6 +116,9 @@ if __name__ == "__main__":
             if is_harvested (outgoing):
                 incoming_of (outgoing).append ({ "class": outgoing["class"], "path": path })
 
+    for entry in indices.values ():
+        entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
+
     pp = pprint.PrettyPrinter ()
 
     pp.pprint (indices)
