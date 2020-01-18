@@ -14,7 +14,7 @@ def has_class (element, dita_class):
     return dita_class in class_of (element)
 
 
-def outgoing_links_of (element, path_name):
+def outgoing_links_of (element, path):
     dita_class = class_of (element)
 
     # These can all be handled the same way, so they've been refactored.
@@ -22,10 +22,10 @@ def outgoing_links_of (element, path_name):
     linker_classes = [ "topic/xref", "topic/link", "topic/image", "map/topicref", "map/navref" ]
 
     if any (linker_class in dita_class for linker_class in linker_classes) and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path_name)
+        return resolve (dita_class, element.attrib["href"], element, path)
 
 
-def resolve (dita_class, href, element, path_name):
+def resolve (dita_class, href, element, path):
     def resolved (is_external, path, fragment):
         return { "class":       dita_class,
                  "is_external": is_external,
@@ -41,10 +41,10 @@ def resolve (dita_class, href, element, path_name):
         return resolved (False, parsed.path, parsed.fragment)
 
     elif parsed.path == "":
-        return resolved (False, os.path.normpath (path_name), parsed.fragment)
+        return resolved (False, os.path.normpath (path), parsed.fragment)
 
     else:
-        return resolved (False, os.path.normpath (os.path.join (os.path.split (path_name)[0], parsed.path)), parsed.fragment)
+        return resolved (False, os.path.normpath (os.path.join (os.path.split (path)[0], parsed.path)), parsed.fragment)
 
 
 def visit (element, visitor):
