@@ -77,6 +77,17 @@ def harvest (path):
         return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path)))
 
 
+    def harvest_title (tree):
+        title = tree.find ("/title")
+
+        if title is None:
+            return None
+
+        else:
+            print ("[1]: ", title.text)
+            return title.text # This isn't quite correct: there might be child elements ... .
+
+
     classification = classify (path)
 
     if classification["type"] == "OTHER":
@@ -87,7 +98,7 @@ def harvest (path):
 
     else:
         return ( path, { "classification": classification["type"],
-                         "description":    None,
+                         "description":    harvest_title (classification["tree"]),
                          "links": { "incoming": [ ],
                                     "outgoing": harvest_outgoing (classification["tree"], 
                                                                   classification["path"]) } } )
