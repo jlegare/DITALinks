@@ -94,6 +94,18 @@ def harvest (path):
 
 
 if __name__ == "__main__":
+    def incoming_of (entry):
+        # This function is here solely to help readability below.
+        #
+        return indices[entry["path"]]["links"]["incoming"]
+
+
+    def is_harvested (entry):
+        # This function is here solely to help readability below.
+        #
+        return entry["path"] in indices and not entry["is_external"]
+
+
     indices = { }
 
     for path in configure ():
@@ -101,8 +113,8 @@ if __name__ == "__main__":
 
     for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
-            if not outgoing["is_external"] and outgoing["path"] in indices:
-                indices[outgoing["path"]]["links"]["incoming"].append ({ "class": outgoing["class"], "path": path })
+            if is_harvested (outgoing):
+                incoming_of (outgoing).append ({ "class": outgoing["class"], "path": path })
 
     pp = pprint.PrettyPrinter ()
 
