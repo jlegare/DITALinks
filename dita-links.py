@@ -81,11 +81,13 @@ def harvest (path):
 
     if classification["type"] == "OTHER":
         return ( path, { "classification": classification["type"],
+                         "description":    None,
                          "links": { "incoming": [ ],
                                     "outgoing": [ ] } } )
 
     else:
         return ( path, { "classification": classification["type"],
+                         "description":    None,
                          "links": { "incoming": [ ],
                                     "outgoing": harvest_outgoing (classification["tree"], 
                                                                   classification["path"]) } } )
@@ -95,9 +97,7 @@ if __name__ == "__main__":
     indices = { }
 
     for path in configure ():
-        indices.update ({ path: { "classification": d["classification"],
-                                  "links":          d["links"] }
-                          for ( path, d ) in files.visit (path, harvest) })
+        indices.update ({ path: harvested for ( path, harvested ) in files.visit (path, harvest) })
 
     for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
