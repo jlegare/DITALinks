@@ -13,25 +13,25 @@ import files
 import utilities
 
 
-def classify (path_name):
-    ( mime_type, _ ) = mimetypes.guess_type (path_name)
+def classify (path):
+    ( mime_type, _ ) = mimetypes.guess_type (path)
 
     if mime_type == "application/xml":
         parser = etree.XMLParser (attribute_defaults = True, dtd_validation = True)
-        tree   = etree.parse (path_name, parser)
+        tree   = etree.parse (path, parser)
         root   = tree.getroot ()
 
         if dita.has_class (root, "topic/topic"):
-            return ( "TOPIC", path_name, tree )
+            return { "type": "TOPIC", "path": path, "tree": tree }
 
         elif dita.has_class (root, "map/map"):
-            return ( "MAP  ", path_name, tree )
+            return { "type": "MAP", "path": path, "tree": tree }
 
         else:
-            return ( "OTHER", path_name, None )
+            return { "type": "OTHER", "path": path, "tree": None }
 
     else:
-        return ( "OTHER", path_name, None )
+        return { "type": "OTHER", "path": path, "tree": None }
 
 
 def configure ():
@@ -42,7 +42,7 @@ def configure ():
     parser.add_argument ("-c", "--catalog",    help = "path to OASIS catalog")
     parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings")
 
-    parser.add_argument ("path_name", nargs = "*", help = "paths to files")
+    parser.add_argument ("path", nargs = "*", help = "paths to files")
 
     arguments = parser.parse_args ()
 
@@ -67,41 +67,42 @@ def configure ():
         else:
             print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
-    return arguments.path_name
+    return arguments.path
 
 
-def harvest (path_name):
-    def harvest_outgoing (tree, path_name):
+def harvest (path):
+    def harvest_outgoing (tree, path):
         # Call utilities.uniquify () on the result to make the links unique.
         #
-        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path_name)))
+        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path)))
 
 
-    classification = classify (path_name)
+    classification = classify (path)
 
-    if classification[0] == "OTHER":
-        return ( path_name, { "classification": classification[0],
-                              "links": { "incoming": [ ],
-                                         "outgoing": [ ] } } )
+    if classification["type"] == "OTHER":
+        return ( path, { "classification": classification["type"],
+                         "links": { "incoming": [ ],
+                                    "outgoing": [ ] } } )
 
     else:
-        return ( path_name, { "classification": classification[0],
-                              "links": { "incoming": [ ],
-                                         "outgoing": harvest_outgoing (classification[2], classification[1]) } } )
+        return ( path, { "classification": classification["type"],
+                         "links": { "incoming": [ ],
+                                    "outgoing": harvest_outgoing (classification["tree"], 
+                                                                  classification["path"]) } } )
 
 
 if __name__ == "__main__":
     indices = { }
 
-    for path_name in configure ():
-        indices.update ({ path_name: { "classification": d["classification"],
-                                       "links":          d["links"] }
-                          for ( path_name, d ) in files.visit (path_name, harvest) })
+    for path in configure ():
+        indices.update ({ path: { "classification": d["classification"],
+                                  "links":          d["links"] }
+                          for ( path, d ) in files.visit (path, harvest) })
 
-    for ( path_name, index ) in indices.items ():
+    for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
             if not outgoing["is_external"] and outgoing["path"] in indices:
-                indices[outgoing["path"]]["links"]["incoming"].append ({ "class": outgoing["class"], "path": path_name })
+                indices[outgoing["path"]]["links"]["incoming"].append ({ "class": outgoing["class"], "path": path })
 
     pp = pprint.PrettyPrinter ()
 
