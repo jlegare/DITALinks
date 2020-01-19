@@ -84,7 +84,7 @@ def harvest (path, root_path):
             return None
 
         else:
-            return title.text # This isn't quite correct: there might be child elements ... .
+            return "".join (dita.text_of (title))
 
 
     classification = classify (path)
