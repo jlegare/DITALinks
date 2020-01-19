@@ -42,7 +42,7 @@ def configure ():
     parser.add_argument ("-c", "--catalog",    help = "path to OASIS catalog")
     parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings")
 
-    parser.add_argument ("path", nargs = "*", help = "paths to files")
+    parser.add_argument ("path", nargs = "+", help = "paths to files")
 
     arguments = parser.parse_args ()
 
