@@ -15,6 +15,10 @@ def has_class (element, dita_class):
 
 
 def outgoing_links_of (element, path, root_path):
+    # For now, this is just a sketch of how to collect the outgoing links of an element. For starters, the list of
+    # classes should be configurable. Secondly, the method used to obtain the target of the link (i.e., @href below)
+    # should also be configurable.
+    #
     dita_class = class_of (element)
 
     # These can all be handled the same way, so they've been refactored.
