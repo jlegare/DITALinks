@@ -49,6 +49,17 @@ def resolve (dita_class, href, element, path, root_path):
         return resolved (False, resolved_path, parsed.fragment)
 
 
+def text_of (element):
+    if element.text is not None:
+        yield element.text
+
+    for child in element:
+        yield from text_of (child)
+
+        if child.tail is not None:
+            yield child.tail
+
+
 def visit (element, visitor):
     visited = visitor (element)
 
