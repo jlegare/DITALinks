@@ -84,7 +84,6 @@ def harvest (path):
             return None
 
         else:
-            print ("[1]: ", title.text)
             return title.text # This isn't quite correct: there might be child elements ... .
 
 
