@@ -39,10 +39,11 @@ def configure ():
 
     parser = argparse.ArgumentParser (description = "Collect incoming/outgoing links from DITA files.")
 
-    parser.add_argument ("-c", "--catalog",    help = "path to OASIS catalog")
-    parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings")
-
-    parser.add_argument ("path", nargs = "+", help = "paths to files")
+    parser.add_argument ("-c", "--catalog", help = "path to OASIS catalog")
+    parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings",
+                         default = "etc/mimetypes.txt")
+    parser.add_argument ("path", nargs = "+",
+                         help = "paths to files")
 
     arguments = parser.parse_args ()
 
@@ -57,15 +58,14 @@ def configure ():
         else:
             print ("ERROR: \"" + arguments.catalog + "\" not found. It will be ignored.")
 
-    if arguments.mime_types:
-        if os.path.exists (arguments.mime_types):
-            mime_types = mimetypes.read_mime_types (arguments.mime_types)
-            if mime_types is not None:
-                for ( extension, mime_type ) in mime_types.items ():
-                    mimetypes.add_type (mime_type, extension)
+    if os.path.exists (arguments.mime_types):
+        mime_types = mimetypes.read_mime_types (arguments.mime_types)
+        if mime_types is not None:
+            for ( extension, mime_type ) in mime_types.items ():
+                mimetypes.add_type (mime_type, extension)
 
-        else:
-            print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
+    else:
+        print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
     return arguments.path
 
