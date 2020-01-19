@@ -70,11 +70,11 @@ def configure ():
     return arguments.path
 
 
-def harvest (path):
+def harvest (path, root_path):
     def harvest_outgoing (tree, path):
         # Call utilities.uniquify () on the result to make the links unique.
         #
-        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path)))
+        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path, root_path)))
 
 
     def harvest_title (tree):
@@ -99,7 +99,7 @@ def harvest (path):
         return ( path, { "classification": classification["type"],
                          "description":    harvest_title (classification["tree"]),
                          "links": { "incoming": [ ],
-                                    "outgoing": harvest_outgoing (classification["tree"], 
+                                    "outgoing": harvest_outgoing (classification["tree"],
                                                                   classification["path"]) } } )
 
 
@@ -118,8 +118,12 @@ if __name__ == "__main__":
 
     indices = { }
 
-    for path in configure ():
-        indices.update ({ relative_path: harvested for ( relative_path, harvested ) in files.visit (path, harvest) })
+    paths       = configure ()
+    common_path = os.path.commonpath (paths)
+
+    for path in paths:
+        indices.update ({ os.path.relpath (path, common_path) : harvested
+                          for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path)) })
 
     for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
