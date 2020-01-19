@@ -119,7 +119,7 @@ if __name__ == "__main__":
     indices = { }
 
     for path in configure ():
-        indices.update ({ path: harvested for ( path, harvested ) in files.visit (path, harvest) })
+        indices.update ({ relative_path: harvested for ( relative_path, harvested ) in files.visit (path, harvest) })
 
     for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:
