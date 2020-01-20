@@ -3,6 +3,7 @@ import os.path
 import sys
 
 import argparse
+import csv
 import mimetypes # libmagic is not available on macOS without installing Brew.
 import pprint
 
@@ -39,6 +40,8 @@ def configure ():
     parser.add_argument ("-c", "--catalog", help = "path to OASIS catalog")
     parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings",
                          default = "etc/mimetypes.txt")
+    parser.add_argument ("-l", "--link-origins", help = "DITA class attribute for elements that are link origins",
+                         default = "etc/dita-1.2.csv")
     parser.add_argument ("path", help = "paths to files",
                          nargs = "+")
 
@@ -55,6 +58,17 @@ def configure ():
         else:
             print ("ERROR: \"" + arguments.catalog + "\" not found. It will be ignored.")
 
+    origins = [ ]
+
+    if os.path.exists (arguments.link_origins):
+        with open (arguments.link_origins) as csv_file:
+            reader = csv.DictReader (csv_file)
+            for row in reader:
+                origins.append (row)
+
+    else:
+        print ("ERROR: \"" + arguments.link_origins + "\" not found. It will be ignored.")
+
     if os.path.exists (arguments.mime_types):
         mime_types = mimetypes.read_mime_types (arguments.mime_types)
         if mime_types is not None:
@@ -64,14 +78,20 @@ def configure ():
     else:
         print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
-    return { "paths": arguments.path }
+    return { "origins": origins,
+             "paths":   arguments.path }
 
 
-def harvest (path, root_path):
+def harvest (path, root_path, origins):
     def harvest_outgoing (tree, path):
-        # Call utilities.uniquify () on the result to make the links unique.
+        def outgoing_links_of (element):
+            return dita.outgoing_links_of (element, path, root_path, origins)
+
+
+        # Flatten the lists and call utilities.uniquify () on the result to make the links unique.
         #
-        return utilities.uniquify (dita.visit (tree.getroot (), lambda element : dita.outgoing_links_of (element, path, root_path)))
+        links = [ target for targets in dita.visit (tree.getroot (), outgoing_links_of) for target in targets ]
+        return utilities.uniquify (links)
 
 
     def harvest_title (tree):
@@ -117,12 +137,14 @@ if __name__ == "__main__":
 
     configuration = configure ()
 
-    paths       = configuration["paths"]
+    origins = configuration["origins"]
+    paths   = configuration["paths"]
+
     common_path = os.path.commonpath (paths)
 
     for path in paths:
         indices.update ({ os.path.relpath (path, common_path) : harvested
-                          for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path)) })
+                          for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path, origins)) })
 
     for ( path, index ) in indices.items ():
         for outgoing in index["links"]["outgoing"]:

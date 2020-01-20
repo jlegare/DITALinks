@@ -14,19 +14,12 @@ def has_class (element, dita_class):
     return dita_class in class_of (element)
 
 
-def outgoing_links_of (element, path, root_path):
-    # For now, this is just a sketch of how to collect the outgoing links of an element. For starters, the list of
-    # classes should be configurable. Secondly, the method used to obtain the target of the link (i.e., @href below)
-    # should also be configurable.
-    #
+def outgoing_links_of (element, path, root_path, origins):
     dita_class = class_of (element)
 
-    # These can all be handled the same way, so they've been refactored.
-    #
-    linker_classes = [ "topic/xref", "topic/link", "topic/image", "map/topicref", "map/navref" ]
-
-    if any (linker_class in dita_class for linker_class in linker_classes) and "href" in element.attrib:
-        return resolve (dita_class, element.attrib["href"], element, path, root_path)
+    for origin in origins:
+        if origin["class"] in dita_class:
+            yield resolve (dita_class, element.xpath (origin["target"]), element, path, root_path)
 
 
 def resolve (dita_class, href, element, path, root_path):

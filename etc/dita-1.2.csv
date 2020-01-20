@@ -1,0 +1,6 @@
+type,class,target
+direct,topic/xref,string(./@href)
+direct,topic/link,string(./@href)
+direct,topic/image,string(./@href)
+direct,map/topicref,string(./@href)
+direct,map/navref,string(./@href)
