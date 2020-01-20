@@ -19,7 +19,9 @@ def outgoing_links_of (element, path, root_path, origins):
 
     for origin in origins:
         if origin["class"] in dita_class:
-            yield resolve (dita_class, element.xpath (origin["target"]), element, path, root_path)
+            target = element.xpath (origin["target"])
+            if target is not None:
+                yield resolve (dita_class, target, element, path, root_path)
 
 
 def resolve (dita_class, href, element, path, root_path):
