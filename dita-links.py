@@ -39,8 +39,8 @@ def configure ():
     parser.add_argument ("-c", "--catalog", help = "path to OASIS catalog")
     parser.add_argument ("-m", "--mime-types", help = "path to file containing additional MIME type mappings",
                          default = "etc/mimetypes.txt")
-    parser.add_argument ("path", nargs = "+",
-                         help = "paths to files")
+    parser.add_argument ("path", help = "paths to files",
+                         nargs = "+")
 
     arguments = parser.parse_args ()
 
@@ -64,7 +64,7 @@ def configure ():
     else:
         print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
-    return arguments.path
+    return { "paths": arguments.path }
 
 
 def harvest (path, root_path):
@@ -115,7 +115,9 @@ if __name__ == "__main__":
 
     indices = { }
 
-    paths       = configure ()
+    configuration = configure ()
+
+    paths       = configuration["paths"]
     common_path = os.path.commonpath (paths)
 
     for path in paths:
