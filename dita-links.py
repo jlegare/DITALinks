@@ -21,17 +21,14 @@ def classify (path):
         tree   = etree.parse (path, parser)
         root   = tree.getroot ()
 
-        if dita.has_class (root, "topic/topic"):
-            return { "type": "TOPIC", "path": path, "tree": tree }
-
-        elif dita.has_class (root, "map/map"):
-            return { "type": "MAP", "path": path, "tree": tree }
+        if dita.has_class (root, "topic/topic") or dita.has_class (root, "map/map"):
+            return { "type": "DITA", "path": path, "tree": tree }
 
         else:
-            return { "type": "OTHER", "path": path, "tree": None }
+            return { "type": None, "path": path, "tree": None }
 
     else:
-        return { "type": "OTHER", "path": path, "tree": None }
+        return { "type": None, "path": path, "tree": None }
 
 
 def configure ():
@@ -89,7 +86,7 @@ def harvest (path, root_path):
 
     classification = classify (path)
 
-    if classification["type"] == "OTHER":
+    if classification["type"] is None:
         return ( path, { "classification": classification["type"],
                          "description":    None,
                          "links": { "incoming": [ ],
