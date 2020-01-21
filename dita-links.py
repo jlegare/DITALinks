@@ -142,6 +142,12 @@ if __name__ == "__main__":
 
     common_path = os.path.commonpath (paths)
 
+    # If a single file name is specified on the command-line, common_path will be set to that file name. Adjust it to be
+    # the directory portion only.
+    #
+    if os.path.isfile (common_path):
+        common_path = os.path.dirname (common_path)
+
     for path in paths:
         indices.update ({ os.path.relpath (path, common_path) : harvested
                           for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path, origins)) })
