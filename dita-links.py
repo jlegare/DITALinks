@@ -42,6 +42,7 @@ def configure ():
                          default = "etc/mimetypes.txt")
     parser.add_argument ("-l", "--link-origins", help = "DITA class attribute for elements that are link origins",
                          default = "etc/dita-1.2.csv")
+    parser.add_argument ("-j", "--json", help = "path to JSON output")
     parser.add_argument ("path", help = "paths to files",
                          nargs = "+")
 
@@ -79,7 +80,8 @@ def configure ():
         print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
     return { "origins": origins,
-             "paths":   arguments.path }
+             "paths":   arguments.path,
+             "json":    arguments.json }
 
 
 def harvest (path, root_path, origins):
@@ -160,6 +162,26 @@ if __name__ == "__main__":
     for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
 
-    pp = pprint.PrettyPrinter ()
+    if configuration["json"] is None:
+        for path in sorted (list (entries)):
+            print (path)
+            if len (entries[path]["links"]["incoming"]) > 0:
+                print ("   " + "INCOMING")
+                for incoming in sorted (entries[path]["links"]["incoming"], key = lambda incoming : incoming["path"]):
+                    print ("   " + "   " + "{:<32}".format (" ".join (incoming["class"])) + " " + incoming["path"])
 
-    pp.pprint (entries)
+            if len (entries[path]["links"]["outgoing"]) > 0:
+                if len (entries[path]["links"]["incoming"]) > 0:
+                    print ()
+
+                print ("   " + "OUTGOING")
+                for outgoing in sorted (entries[path]["links"]["outgoing"], key = lambda outgoing : outgoing["path"]):
+                    print ("   " + "   " + "{:<32}".format (" ".join (outgoing["class"])) + outgoing["path"]
+                           + ("#" if outgoing["fragment"] != "" else "") + outgoing["fragment"])
+
+            print ()
+
+    else:
+        with open (configuration["json"], "w") as output:
+            pp = pprint.PrettyPrinter (stream = output)
+            pp.pprint (entries)
