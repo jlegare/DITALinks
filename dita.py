@@ -18,7 +18,7 @@ def outgoing_links_of (element, path, root_path, origins):
     dita_class = class_of (element)
 
     for origin in origins:
-        if origin["class"] in dita_class:
+        if element.xpath (origin["selector"]):
             target = element.xpath (origin["target"], smart_strings = False)
             if target != "":
                 yield resolve (dita_class, target, element, path, root_path)
