@@ -124,16 +124,16 @@ if __name__ == "__main__":
     def incoming_of (entry):
         # This function is here solely to help readability below.
         #
-        return indices[entry["path"]]["links"]["incoming"]
+        return entries[entry["path"]]["links"]["incoming"]
 
 
     def is_harvested (entry):
         # This function is here solely to help readability below.
         #
-        return entry["path"] in indices and not entry["is_external"]
+        return entry["path"] in entries and not entry["is_external"]
 
 
-    indices = { }
+    entries = { }
 
     configuration = configure ()
 
@@ -149,17 +149,17 @@ if __name__ == "__main__":
         common_path = os.path.dirname (common_path)
 
     for path in paths:
-        indices.update ({ os.path.relpath (path, common_path) : harvested
+        entries.update ({ os.path.relpath (path, common_path) : harvested
                           for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path, origins)) })
 
-    for ( path, index ) in indices.items ():
-        for outgoing in index["links"]["outgoing"]:
+    for ( path, entry ) in entries.items ():
+        for outgoing in entry["links"]["outgoing"]:
             if is_harvested (outgoing):
                 incoming_of (outgoing).append ({ "class": outgoing["class"], "path": path })
 
-    for entry in indices.values ():
+    for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
 
     pp = pprint.PrettyPrinter ()
 
-    pp.pprint (indices)
+    pp.pprint (entries)
