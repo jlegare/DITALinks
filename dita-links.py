@@ -123,19 +123,19 @@ def harvest (path, root_path, origins):
 
 
 if __name__ == "__main__":
-    def incoming_of (entry):
+    def incoming_of (entry, entries):
         # This function is here solely to help readability below.
         #
         return entries[entry["path"]]["links"]["incoming"]
 
 
-    def is_harvested (entry):
+    def is_harvested (entry, entries):
         # This function is here solely to help readability below.
         #
         return entry["path"] in entries and not entry["is_external"]
 
 
-    def incomings (entries, stream):
+    def incomings (path, entries, stream):
         if len (entries[path]["links"]["incoming"]) > 0:
             stream.write ("INCOMING\n")
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                     indenter.write ("{:<32}".format (" ".join (incoming["class"])) + " " + incoming["path"] + "\n")
 
 
-    def outgoings (entries, stream):
+    def outgoings (path, entries, stream):
         if len (entries[path]["links"]["outgoing"]) > 0:
             if len (entries[path]["links"]["incoming"]) > 0:
                 stream.write ("\n")
@@ -178,8 +178,8 @@ if __name__ == "__main__":
 
     for ( path, entry ) in entries.items ():
         for outgoing in entry["links"]["outgoing"]:
-            if is_harvested (outgoing):
-                incoming_of (outgoing).append ({ "class": outgoing["class"], "path": path })
+            if is_harvested (outgoing, entries):
+                incoming_of (outgoing, entries).append ({ "class": outgoing["class"], "path": path })
 
     for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
@@ -189,8 +189,8 @@ if __name__ == "__main__":
 
         for path in sorted (list (entries)):
             stream.write (path + "\n")
-            incomings (entries, utilities.Indenter (stream = stream))
-            outgoings (entries, utilities.Indenter (stream = stream))
+            incomings (path, entries, utilities.Indenter (stream = stream))
+            outgoings (path, entries, utilities.Indenter (stream = stream))
             stream.write ("\n")
 
     else:
