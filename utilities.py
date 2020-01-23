@@ -2,6 +2,18 @@ import io
 import sys
 
 
+def popfront (dictionary):
+    if dictionary:
+        ( key, value ) = next (iter (dictionary.items ()))
+
+        dictionary.pop (key)
+
+        return ( key, value )
+
+    else:
+        return None
+
+
 def uniquify (dictionaries):
     return list ({ ":".join ([ str (dictionary[key]) for key in sorted (dictionary.keys ()) ]) : dictionary
                    for dictionary in dictionaries }.values ())

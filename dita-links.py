@@ -23,13 +23,22 @@ def classify (path):
         root   = tree.getroot ()
 
         if dita.has_class (root, "topic/topic") or dita.has_class (root, "map/map"):
-            return { "type": "DITA", "path": path, "tree": tree }
+            return { "type":  "DITA",
+                     "class": dita.class_of (root),
+                     "path":  path,
+                     "tree":  tree }
 
         else:
-            return { "type": None, "path": path, "tree": None }
+            return { "type":  None,
+                     "class": None,
+                     "path":  path,
+                     "tree":  None }
 
     else:
-        return { "type": None, "path": path, "tree": None }
+        return { "type":  None,
+                 "class": None,
+                 "path":  path,
+                 "tree":  None }
 
 
 def configure ():
@@ -84,10 +93,10 @@ def configure ():
              "json":    arguments.json }
 
 
-def harvest (path, root_path, origins):
+def harvest (path, origins):
     def harvest_outgoing (tree, path):
         def outgoing_links_of (element):
-            return dita.outgoing_links_of (element, path, root_path, origins)
+            return dita.outgoing_links_of (element, path, origins)
 
 
         # Flatten the lists and call utilities.uniquify () on the result to make the links unique.
@@ -116,6 +125,7 @@ def harvest (path, root_path, origins):
 
     else:
         return ( path, { "classification": classification["type"],
+                         "class":          classification["class"],
                          "description":    harvest_title (classification["tree"]),
                          "links": { "incoming": [ ],
                                     "outgoing": harvest_outgoing (classification["tree"],
@@ -153,8 +163,12 @@ if __name__ == "__main__":
 
             with utilities.Indenter (stream = stream) as indenter:
                 for outgoing in sorted (entries[path]["links"]["outgoing"], key = lambda outgoing : outgoing["path"]):
-                    indenter.write ("{:<32}".format (" ".join (outgoing["class"])) + outgoing["path"]
+                    indenter.write ("{:<32}".format (" ".join (outgoing["class"])) + " " + outgoing["path"]
                                     + ("#" if outgoing["fragment"] != "" else "") + outgoing["fragment"] + "\n")
+
+
+    def unvisited_of (file_names, entries):
+        return { }.fromkeys ([ file_name for file_name in file_names if file_name not in entries ])
 
 
     entries = { }
@@ -164,17 +178,17 @@ if __name__ == "__main__":
     origins = configuration["origins"]
     paths   = configuration["paths"]
 
-    common_path = os.path.commonpath (paths)
+    unvisited = { }.fromkeys ([ file_name for path in paths
+                                          for file_name in files.visit (path, lambda file_name : file_name) ])
 
-    # If a single file name is specified on the command-line, common_path will be set to that file name. Adjust it to be
-    # the directory portion only.
-    #
-    if os.path.isfile (common_path):
-        common_path = os.path.dirname (common_path)
+    while unvisited:
+        ( path, _ )      = utilities.popfront (unvisited)
+        ( _, harvested ) = harvest (path, origins)
 
-    for path in paths:
-        entries.update ({ os.path.relpath (path, common_path) : harvested
-                          for ( path, harvested ) in files.visit (path, lambda path : harvest (path, common_path, origins)) })
+        entries.update ({ path : harvested })
+        unvisited.update (unvisited_of ([ h["path"]
+                                          for h in harvested["links"]["outgoing"]
+                                          if h["path"] != path and not h["is_external"] ], entries))
 
     for ( path, entry ) in entries.items ():
         for outgoing in entry["links"]["outgoing"]:
@@ -184,13 +198,27 @@ if __name__ == "__main__":
     for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
 
+    common_path = os.path.commonpath (entries.keys ())
+
+    normalized_entries = { }
+
+    for ( path, entry ) in entries.items ():
+        for incoming in entry["links"]["incoming"]:
+            incoming["path"] = os.path.relpath (incoming["path"], common_path)
+
+        for outgoing in entry["links"]["outgoing"]:
+            if not outgoing["is_external"]:
+                outgoing["path"] = os.path.relpath (outgoing["path"], common_path)
+
+        normalized_entries[os.path.relpath (path, common_path)] = entry
+
     if configuration["json"] is None:
         stream = sys.stdout
 
-        for path in sorted (list (entries)):
+        for path in sorted (list (normalized_entries)):
             stream.write (path + "\n")
-            incomings (path, entries, utilities.Indenter (stream = stream))
-            outgoings (path, entries, utilities.Indenter (stream = stream))
+            incomings (path, normalized_entries, utilities.Indenter (stream = stream))
+            outgoings (path, normalized_entries, utilities.Indenter (stream = stream))
             stream.write ("\n")
 
     else:
