@@ -135,6 +135,28 @@ if __name__ == "__main__":
         return entry["path"] in entries and not entry["is_external"]
 
 
+    def incomings (entries, stream):
+        if len (entries[path]["links"]["incoming"]) > 0:
+            stream.write ("INCOMING\n")
+
+            with utilities.Indenter (stream = stream) as indenter:
+                for incoming in sorted (entries[path]["links"]["incoming"], key = lambda incoming : incoming["path"]):
+                    indenter.write ("{:<32}".format (" ".join (incoming["class"])) + " " + incoming["path"] + "\n")
+
+
+    def outgoings (entries, stream):
+        if len (entries[path]["links"]["outgoing"]) > 0:
+            if len (entries[path]["links"]["incoming"]) > 0:
+                stream.write ("\n")
+
+            stream.write ("OUTGOING\n")
+
+            with utilities.Indenter (stream = stream) as indenter:
+                for outgoing in sorted (entries[path]["links"]["outgoing"], key = lambda outgoing : outgoing["path"]):
+                    indenter.write ("{:<32}".format (" ".join (outgoing["class"])) + outgoing["path"]
+                                    + ("#" if outgoing["fragment"] != "" else "") + outgoing["fragment"] + "\n")
+
+
     entries = { }
 
     configuration = configure ()
@@ -163,23 +185,13 @@ if __name__ == "__main__":
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
 
     if configuration["json"] is None:
+        stream = sys.stdout
+
         for path in sorted (list (entries)):
-            print (path)
-            if len (entries[path]["links"]["incoming"]) > 0:
-                print ("   " + "INCOMING")
-                for incoming in sorted (entries[path]["links"]["incoming"], key = lambda incoming : incoming["path"]):
-                    print ("   " + "   " + "{:<32}".format (" ".join (incoming["class"])) + " " + incoming["path"])
-
-            if len (entries[path]["links"]["outgoing"]) > 0:
-                if len (entries[path]["links"]["incoming"]) > 0:
-                    print ()
-
-                print ("   " + "OUTGOING")
-                for outgoing in sorted (entries[path]["links"]["outgoing"], key = lambda outgoing : outgoing["path"]):
-                    print ("   " + "   " + "{:<32}".format (" ".join (outgoing["class"])) + outgoing["path"]
-                           + ("#" if outgoing["fragment"] != "" else "") + outgoing["fragment"])
-
-            print ()
+            stream.write (path + "\n")
+            incomings (entries, utilities.Indenter (stream = stream))
+            outgoings (entries, utilities.Indenter (stream = stream))
+            stream.write ("\n")
 
     else:
         with open (configuration["json"], "w") as output:
