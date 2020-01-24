@@ -201,6 +201,13 @@ if __name__ == "__main__":
 
     common_path = os.path.commonpath (entries.keys ())
 
+    # If a single file name is specified on the command-line and that file has no incoming or outgoing links, then
+    # common_path will be set to that file name. This makes for funky output. Adjust it to be the directory portion
+    # only.
+    #
+    if os.path.isfile (common_path):
+        common_path = os.path.dirname (common_path)
+
     normalized_entries = { }
 
     for ( path, entry ) in entries.items ():
