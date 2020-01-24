@@ -44,7 +44,7 @@ DITALinks analyzes each element encountered to determine if it is the source of 
 
 The XPath expressions are evaluated against each element as it is encountered in the input. (The _link type_ field is reserved for future development.)
 
-[JSON](https://www.json.org/json-en.html) output can be had by providing the `--json` command-line flag.
+Default output is a human-readable format. [JSON](https://www.json.org/json-en.html) output can be had by providing the `--json` command-line flag.
 
 ## Discussion
 
