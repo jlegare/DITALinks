@@ -4,8 +4,8 @@ import sys
 
 import argparse
 import csv
+import json
 import mimetypes # libmagic is not available on macOS without installing Brew.
-import pprint
 
 from lxml import etree
 
@@ -51,7 +51,8 @@ def configure ():
                          default = "etc/mimetypes.txt")
     parser.add_argument ("-l", "--link-origins", help = "DITA class attribute for elements that are link origins",
                          default = "etc/dita-1.2.csv")
-    parser.add_argument ("-j", "--json", help = "path to JSON output")
+    parser.add_argument ("-j", "--json", help = "generate JSON output",
+                         action = "store_true")
     parser.add_argument ("path", help = "paths to files",
                          nargs = "+")
 
@@ -212,7 +213,10 @@ if __name__ == "__main__":
 
         normalized_entries[os.path.relpath (path, common_path)] = entry
 
-    if configuration["json"] is None:
+    if configuration["json"]:
+        json.dump (normalized_entries, sys.stdout)
+
+    else:
         stream = sys.stdout
 
         for path in sorted (list (normalized_entries)):
@@ -220,8 +224,3 @@ if __name__ == "__main__":
             incomings (path, normalized_entries, utilities.Indenter (stream = stream))
             outgoings (path, normalized_entries, utilities.Indenter (stream = stream))
             stream.write ("\n")
-
-    else:
-        with open (configuration["json"], "w") as output:
-            pp = pprint.PrettyPrinter (stream = output)
-            pp.pprint (entries)
