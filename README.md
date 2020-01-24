@@ -2,6 +2,13 @@
 
 Harvest the links from [DITA](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=dita) files, and build a table of incoming and outgoing links for each file, including the DITA class of the linking element (_i.e._, is the source of the link an `xref` or a `topicref`, ...).
 
+## Table of Contents
+
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Discussion](#discussion)
+
 ## Requirements
 
 * [Python 3.8 or newer](https://www.python.org/downloads/)
