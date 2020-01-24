@@ -35,7 +35,9 @@ DITALinks analyzes each element encountered to determine if it is the source of 
 * [XPath](https://www.w3.org/TR/1999/REC-xpath-19991116/) expression that evaluates to `true` for the link of interest, and
 * XPath expression that extracts the link target from the element.
 
-The XPath expressions are evaluated against each element as it is encountered in the input.
+The XPath expressions are evaluated against each element as it is encountered in the input. (The _link type_ field is reserved for future development.)
+
+## Discussion
 
 The output of DITALinks is a sorted list of the files encountered as links were visited. For each file, a list of incoming and outgoing links is given, along with the DITA class of linking element. If a file has no incoming links, that section is omitted and only outgoing links will be shown; similarly if a file has no outgoing links. For example, in the DITA 1.2 documentation set, `documentation/introduction/formatting-conventions-xhtml-output.dita` references two images: so the following invocation
 ```
