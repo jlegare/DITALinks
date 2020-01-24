@@ -37,6 +37,8 @@ DITALinks analyzes each element encountered to determine if it is the source of 
 
 The XPath expressions are evaluated against each element as it is encountered in the input. (The _link type_ field is reserved for future development.)
 
+[JSON](https://www.json.org/json-en.html) output can be had by providing the `--json` command-line flag.
+
 ## Discussion
 
 The output of DITALinks is a sorted list of the files encountered as links were visited. For each file, a list of incoming and outgoing links is given, along with the DITA class of linking element. If a file has no incoming links, that section is omitted and only outgoing links will be shown; similarly if a file has no outgoing links. For example, in the DITA 1.2 documentation set, `documentation/introduction/formatting-conventions-xhtml-output.dita` references two images: so the following invocation
