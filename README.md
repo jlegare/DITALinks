@@ -60,3 +60,11 @@ resources/preview-links.jpg
         - topic/image                    introduction/formatting-conventions-xhtml-output.dita
 ```
 Since images cannot link to anything, these two files have only an incoming section. 
+
+When possible, DITALinks factors common path components out its output: in the examples above, `documentation/` was dropped because it was common to all visited files.
+
+If a directory name is provided on the command-line, DITALinks will attempt to visit all files in the provided directory. This can be used to find _orphaned files_ in a documentation set (_i.e._, files that reference nothing, and are not referenced from anywhere). As an artificial example, the following invocation
+```
+python dita-links.py -c dtd1.2/catalog-dita.xml documentation/introduction/
+```
+will show that `introduction/c-terminology.dita` (among others) is orphaned. (This example is contrived: `documentation/introduction` is not a complete documentation set, and the file in question is in fact referenced from elsewhere when the full DITA 1.2 documentation set is taken in to consideration.)
