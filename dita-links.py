@@ -4,8 +4,10 @@ import sys
 
 import argparse
 import csv
+import html
 import json
 import mimetypes # libmagic is not available on macOS without installing Brew.
+import textwrap
 
 from lxml import etree
 
@@ -51,6 +53,8 @@ def configure ():
                          default = "etc/mimetypes.txt")
     parser.add_argument ("-l", "--link-origins", help = "DITA class attribute for elements that are link origins",
                          default = "etc/dita-1.2.csv")
+    parser.add_argument ("-g", "--graphviz", help = "generate GraphViz output",
+                         action = "store_true")
     parser.add_argument ("-j", "--json", help = "generate JSON output",
                          action = "store_true")
     parser.add_argument ("path", help = "paths to files",
@@ -89,9 +93,48 @@ def configure ():
     else:
         print ("ERROR: \"" + arguments.mime_types + "\" not found. It will be ignored.")
 
-    return { "origins": origins,
-             "paths":   arguments.path,
-             "json":    arguments.json }
+    return { "origins":  origins,
+             "paths":    arguments.path,
+             "graphviz": arguments.graphviz,
+             "json":     arguments.json }
+
+
+def graphviz (entries, stream):
+    def edges (path, entries, stream):
+        for outgoing in entries[path]["links"]["outgoing"]:
+            if outgoing["path"] in entries:
+                stream.write (name_of (path) + " -> " + name_of (outgoing["path"]) + ";\n")
+
+
+    def node (path, entries, stream):
+        stream.write (name_of (path) + " [label=<\n")
+        stream.write ("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n")
+
+        if entries[path]["description"]:
+            description = "<B>" + "<BR/>\n".join (textwrap.wrap (entries[path]["description"], width = 20)) + "</B>"
+
+        else:
+            description = "<I>" + path + "</I>"
+
+        stream.write ("<TR><TD BGCOLOR=\"gray\"><B>" + html.escape (description) + "</B></TD></TR>\n")
+        stream.write ("</TABLE>\n")
+        stream.write (">];\n")
+
+
+    def name_of (path):
+        return path.replace ("/", "_").replace (".", "_").replace ("-", "_")
+
+
+    stream.write ("digraph links {\n")
+    stream.write ("    node[shape = none]\n\n")
+
+    for path in sorted (list (entries)):
+        node (path, entries, stream)
+
+    for path in sorted (list (entries)):
+        edges (path, entries, stream)
+
+    stream.write ("}\n")
 
 
 def harvest (path, origins):
@@ -229,7 +272,10 @@ if __name__ == "__main__":
 
         normalized_entries[os.path.relpath (path, common_path)] = entry
 
-    if configuration["json"]:
+    if configuration["graphviz"]:
+        graphviz (normalized_entries, sys.stdout)
+
+    elif configuration["json"]:
         json.dump (normalized_entries, sys.stdout)
 
     else:
