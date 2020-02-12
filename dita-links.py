@@ -133,19 +133,7 @@ def harvest (path, origins):
                                                                   classification["path"]) } } )
 
 
-if __name__ == "__main__":
-    def incoming_of (entry, entries):
-        # This function is here solely to help readability below.
-        #
-        return entries[entry["path"]]["links"]["incoming"]
-
-
-    def is_harvested (entry, entries):
-        # This function is here solely to help readability below.
-        #
-        return entry["path"] in entries and not entry["is_external"]
-
-
+def human_readable (entries, stream):
     def incomings (path, entries, stream):
         if len (entries[path]["links"]["incoming"]) > 0:
             stream.write ("INCOMING\n")
@@ -166,6 +154,27 @@ if __name__ == "__main__":
                 for outgoing in sorted (entries[path]["links"]["outgoing"], key = lambda outgoing : outgoing["path"]):
                     indenter.write ("{:<32}".format (" ".join (outgoing["class"])) + " " + outgoing["path"]
                                     + ("#" if outgoing["fragment"] != "" else "") + outgoing["fragment"] + "\n")
+
+
+    for path in sorted (list (entries)):
+        stream.write (path + "\n")
+        incomings (path, entries, utilities.Indenter (stream = stream))
+        outgoings (path, entries, utilities.Indenter (stream = stream))
+        stream.write ("\n")
+
+
+
+if __name__ == "__main__":
+    def incoming_of (entry, entries):
+        # This function is here solely to help readability below.
+        #
+        return entries[entry["path"]]["links"]["incoming"]
+
+
+    def is_harvested (entry, entries):
+        # This function is here solely to help readability below.
+        #
+        return entry["path"] in entries and not entry["is_external"]
 
 
     def unvisited_of (file_names, entries):
@@ -224,10 +233,4 @@ if __name__ == "__main__":
         json.dump (normalized_entries, sys.stdout)
 
     else:
-        stream = sys.stdout
-
-        for path in sorted (list (normalized_entries)):
-            stream.write (path + "\n")
-            incomings (path, normalized_entries, utilities.Indenter (stream = stream))
-            outgoings (path, normalized_entries, utilities.Indenter (stream = stream))
-            stream.write ("\n")
+        human_readable (normalized_entries, sys.stdout)
