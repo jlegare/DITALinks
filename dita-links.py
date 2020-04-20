@@ -1,3 +1,4 @@
+import itertools
 import os
 import os.path
 import sys
@@ -19,28 +20,32 @@ import utilities
 def classify (path):
     ( mime_type, _ ) = mimetypes.guess_type (path)
 
-    if mime_type == "application/xml":
-        parser = etree.XMLParser (attribute_defaults = True, dtd_validation = True)
-        tree   = etree.parse (path, parser)
-        root   = tree.getroot ()
+    if os.path.isfile (path):
+        if mime_type == "application/xml":
+            parser = etree.XMLParser (attribute_defaults = True, dtd_validation = True)
+            tree   = etree.parse (path, parser)
+            root   = tree.getroot ()
 
-        if dita.has_class (root, "topic/topic") or dita.has_class (root, "map/map"):
-            return { "type":  "DITA",
-                     "class": dita.class_of (root),
-                     "path":  path,
-                     "tree":  tree }
+            if dita.has_class (root, "topic/topic") or dita.has_class (root, "map/map"):
+                return { "type":  "DITA",
+                         "class": dita.class_of (root),
+                         "path":  path,
+                         "tree":  tree }
+
+            else:
+                return { "type":  None,
+                         "class": None,
+                         "path":  path,
+                         "tree":  None }
 
         else:
-            return { "type":  None,
+            return { "type":  "BROKEN",
                      "class": None,
                      "path":  path,
                      "tree":  None }
 
     else:
-        return { "type":  None,
-                 "class": None,
-                 "path":  path,
-                 "tree":  None }
+        return None
 
 
 def configure ():
@@ -146,6 +151,7 @@ def harvest (path, origins):
         # Flatten the lists and call utilities.uniquify () on the result to make the links unique.
         #
         links = [ target for targets in dita.visit (tree.getroot (), outgoing_links_of) for target in targets ]
+
         return utilities.uniquify (links)
 
 
@@ -161,9 +167,17 @@ def harvest (path, origins):
 
     classification = classify (path)
 
-    if classification["type"] is None:
+    if classification is None:
+        return ( path, { "classification": None,
+                         "description":    None,
+                         "is_located":     False,
+                         "links": { "incoming": [ ],
+                                    "outgoing": [ ] } } )
+
+    elif classification["type"] is None:
         return ( path, { "classification": classification["type"],
                          "description":    None,
+                         "is_located":     True,
                          "links": { "incoming": [ ],
                                     "outgoing": [ ] } } )
 
@@ -171,12 +185,26 @@ def harvest (path, origins):
         return ( path, { "classification": classification["type"],
                          "class":          classification["class"],
                          "description":    harvest_title (classification["tree"]),
+                         "is_located":     True,
                          "links": { "incoming": [ ],
                                     "outgoing": harvest_outgoing (classification["tree"],
                                                                   classification["path"]) } } )
 
 
 def human_readable (entries, stream):
+    def brokens (path, entries, stream):
+        if len (entries[path]["links"]["broken"]) > 0:
+            if len (entries[path]["links"]["outgoing"]) > 0:
+                stream.write ("\n")
+
+            stream.write ("BROKEN\n")
+
+            with utilities.Indenter (stream = stream) as indenter:
+                for broken in sorted (entries[path]["links"]["broken"], key = lambda broken : broken["path"]):
+                    indenter.write ("{:<32}".format (" ".join (broken["class"])) + " " + broken["path"]
+                                    + ("#" if broken["fragment"] != "" else "") + broken["fragment"] + "\n")
+
+
     def incomings (path, entries, stream):
         if len (entries[path]["links"]["incoming"]) > 0:
             stream.write ("INCOMING\n")
@@ -200,11 +228,17 @@ def human_readable (entries, stream):
 
 
     for path in sorted (list (entries)):
-        stream.write (path + "\n")
-        incomings (path, entries, utilities.Indenter (stream = stream))
-        outgoings (path, entries, utilities.Indenter (stream = stream))
+        stream.write (path)
+
+        if not entries[path]["is_located"]:
+            stream.write ("   *** MISSING ***")
+
         stream.write ("\n")
 
+        incomings (path, entries, utilities.Indenter (stream = stream))
+        outgoings (path, entries, utilities.Indenter (stream = stream))
+        brokens (path, entries, utilities.Indenter (stream = stream))
+        stream.write ("\n")
 
 
 if __name__ == "__main__":
@@ -239,14 +273,20 @@ if __name__ == "__main__":
         ( _, harvested ) = harvest (path, origins)
 
         entries.update ({ path : harvested })
-        unvisited.update (unvisited_of ([ h["path"]
-                                          for h in harvested["links"]["outgoing"]
-                                          if h["path"] != path and not h["is_external"] ], entries))
+
+        if harvested["is_located"]:
+            unvisited.update (unvisited_of ([ h["path"]
+                                              for h in harvested["links"]["outgoing"]
+                                              if h["path"] != path and not h["is_external"] ], entries))
 
     for ( path, entry ) in entries.items ():
         for outgoing in entry["links"]["outgoing"]:
             if is_harvested (outgoing, entries):
                 incoming_of (outgoing, entries).append ({ "class": outgoing["class"], "path": path })
+
+        entry["links"]["broken"]   = list (itertools.filterfalse (lambda e : e["is_located"] or e["is_external"],
+                                                                  entry["links"]["outgoing"]))
+        entry["links"]["outgoing"] = list (filter (lambda e : e["is_located"] or e["is_external"], entry["links"]["outgoing"]))
 
     for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])

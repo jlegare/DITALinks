@@ -29,6 +29,7 @@ def resolve (dita_class, href, element, path):
         return { "class":       dita_class,
                  "is_external": is_external,
                  "path":        path,
+                 "is_located":  not is_external and os.path.isfile (path),
                  "fragment":    fragment }
 
     parsed = urllib.parse.urlparse (href)
