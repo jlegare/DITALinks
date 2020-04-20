@@ -27,7 +27,7 @@ To harvest the links for a single file, provide the path to the file on the comm
 ```
 python dita-links.py --catalog path-to-catalog some-topic.dita
 ```
-Any outgoing links that are encountered will be recorded, and if the link targets are available, they will be recursively visited, until closure is obtained. Knowing this, to harvest the links for an entire documentation set, we need only to provide the path to the top-most DITA map: for example, if the DITA 1.2 documentation set is located in `documentation/`, then the links for all the reachable files can be had using
+Any outgoing links that are encountered will be recorded, and if the link targets are to local files (that is, not external) and those files are available, they will be recursively visited, until closure is obtained. If a link is to a local file but the file is not available, the link will recorded as broken. Knowing this, to harvest the links for an entire documentation set, we need only to provide the path to the top-most DITA map: for example, if the DITA 1.2 documentation set is located in `documentation/`, then the links for all the reachable files can be had using
 ```
 python dita-links.py --catalog path-to-catalog documentation/dita-1.2-specification.ditamap
 ```
