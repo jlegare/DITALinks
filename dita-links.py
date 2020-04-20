@@ -39,7 +39,7 @@ def classify (path):
                          "tree":  None }
 
         else:
-            return { "type":  "BROKEN",
+            return { "type":  None,
                      "class": None,
                      "path":  path,
                      "tree":  None }
