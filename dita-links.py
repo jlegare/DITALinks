@@ -116,12 +116,12 @@ def graphviz (entries, stream):
         stream.write ("<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n")
 
         if entries[path]["description"]:
-            description = "<B>" + "<BR/>\n".join (textwrap.wrap (entries[path]["description"], width = 20)) + "</B>"
+            description = "<B>" + "<BR/>\n".join (textwrap.wrap (html.escape (entries[path]["description"]), width = 20)) + "</B>"
 
         else:
             description = "<I>" + path + "</I>"
 
-        stream.write ("<TR><TD BGCOLOR=\"gray\"><B>" + html.escape (description) + "</B></TD></TR>\n")
+        stream.write ("<TR><TD BGCOLOR=\"gray\"><B>" + description + "</B></TD></TR>\n")
         stream.write ("</TABLE>\n")
         stream.write (">];\n")
 
