@@ -44,6 +44,8 @@ DITALinks analyzes each element encountered to determine if it is the source of 
 
 The XPath expressions are evaluated against each element as it is encountered in the input. (The _link type_ field is reserved for future development.)
 
+The `--no-follow` command-line option can be used to limit output: when specified, links will only be followed for files specified on the command-line. For example, if a map is specified on the command-line, its `topicref` elements will generate entries in the output as always, but the files pointed-to by its `topicref` elements will not be visited any further.
+
 Default output is a human-readable format. [JSON](https://www.json.org/json-en.html) output can be had by providing the `--json` command-line flag. [GraphViz](https://graphviz.gitlab.io) can be obtained by providing the `--graphviz` command-line flag. (Note: For any reasonable-sized documentation, don't expect the GraphViz output to be readable.)
 
 ## Discussion
