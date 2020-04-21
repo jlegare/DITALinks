@@ -62,6 +62,8 @@ def configure ():
                          action = "store_true")
     parser.add_argument ("-j", "--json", help = "generate JSON output",
                          action = "store_true")
+    parser.add_argument ("-f", "--no-follow", help = "do not follow referenced files",
+                         action = "store_true")
     parser.add_argument ("path", help = "paths to files",
                          nargs = "+")
 
@@ -101,7 +103,8 @@ def configure ():
     return { "origins":  origins,
              "paths":    arguments.path,
              "graphviz": arguments.graphviz,
-             "json":     arguments.json }
+             "json":     arguments.json,
+             "follow":   not arguments.no_follow }
 
 
 def graphviz (entries, stream):
@@ -260,6 +263,18 @@ if __name__ == "__main__":
         return entry["path"] in entries and not entry["is_external"]
 
 
+    def should_consider (harvested, path):
+        # This function is here solely to help readability below.
+        #
+        return harvested["path"] != path and not harvested["is_external"]
+
+
+    def should_visit (path, visitables):
+        # This function is here solely to help readability below.
+        #
+        return path in visitables
+
+
     def unvisited_of (file_names, entries):
         return { }.fromkeys ([ file_name for file_name in file_names if file_name not in entries ])
 
@@ -273,17 +288,26 @@ if __name__ == "__main__":
 
     unvisited = { }.fromkeys ([ file_name for path in paths
                                           for file_name in files.visit (path, lambda file_name : file_name) ])
+    visitables = paths[:]
 
     while unvisited:
-        ( path, _ )      = utilities.popfront (unvisited)
-        ( _, harvested ) = harvest (path, origins)
+        ( path, _ ) = utilities.popfront (unvisited)
 
-        entries.update ({ path : harvested })
+        if configuration["follow"] or should_visit (path, visitables):
+            ( _, harvested ) = harvest (path, origins)
 
-        if harvested["is_located"]:
-            unvisited.update (unvisited_of ([ h["path"]
-                                              for h in harvested["links"]["outgoing"]
-                                              if h["path"] != path and not h["is_external"] ], entries))
+            entries.update ({ path : harvested })
+
+            # I tried various ways of implementing the "no follow" behaviour, and all appeared to yield about the same
+            # performance. This one is succinct.
+            #
+            if path in paths:
+                visitables = list (set (visitables + [ p["path"] for p in harvested["links"]["outgoing"] ]))
+
+            if harvested["is_located"]:
+                unvisited.update (unvisited_of ([ h["path"]
+                                                  for h in harvested["links"]["outgoing"]
+                                                  if should_consider (h, path) ], entries))
 
     for ( path, entry ) in entries.items ():
         for outgoing in entry["links"]["outgoing"]:
