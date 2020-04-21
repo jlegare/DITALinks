@@ -248,6 +248,12 @@ if __name__ == "__main__":
         return entries[entry["path"]]["links"]["incoming"]
 
 
+    def is_followable (entry):
+        # This function is here solely to help readability below.
+        #
+        return entry["is_located"] or entry["is_external"]
+
+
     def is_harvested (entry, entries):
         # This function is here solely to help readability below.
         #
@@ -284,9 +290,8 @@ if __name__ == "__main__":
             if is_harvested (outgoing, entries):
                 incoming_of (outgoing, entries).append ({ "class": outgoing["class"], "path": path })
 
-        entry["links"]["broken"]   = list (itertools.filterfalse (lambda e : e["is_located"] or e["is_external"],
-                                                                  entry["links"]["outgoing"]))
-        entry["links"]["outgoing"] = list (filter (lambda e : e["is_located"] or e["is_external"], entry["links"]["outgoing"]))
+        entry["links"]["broken"]   = list (itertools.filterfalse (is_followable, entry["links"]["outgoing"]))
+        entry["links"]["outgoing"] = list (filter (is_followable, entry["links"]["outgoing"]))
 
     for entry in entries.values ():
         entry["links"]["incoming"] = utilities.uniquify (entry["links"]["incoming"])
